@@ -41,7 +41,7 @@ final public class ContactsPickerViewController: UIViewController {
     public typealias Selection = (Contact?) -> ()
     
     fileprivate var selection: Selection?
-    
+
     //Contacts ordered in dicitonary alphabetically
     fileprivate var orderedContacts = [String: [CNContact]]()
     fileprivate var sortedContactKeys = [String]()
@@ -170,7 +170,7 @@ final public class ContactsPickerViewController: UIViewController {
             let alert = UIAlertController(title: "Permission denied", message: "\(productName) does not have access to contacts. Please, allow the application to access to your contacts.", preferredStyle: .alert)
             alert.addAction(title: "Settings", style: .destructive) { action in
                 if let settingsURL = URL(string: UIApplication.openSettingsURLString) {
-                    UIApplication.shared.open(settingsURL)
+                    UIApplication.shared.openURL(settingsURL)
                 }
             }
             alert.addAction(title: "OK", style: .cancel) { [unowned self] action in
@@ -181,10 +181,24 @@ final public class ContactsPickerViewController: UIViewController {
     }
     
     func fetchContacts(completionHandler: @escaping ([String: [CNContact]]) -> ()) {
-        Contacts.fetchContactsGroupedByAlphabets { [unowned self] result in
+        Contacts.fetchContacts { [unowned self] result in
             switch result {
                 
-            case .success(let orderedContacts):
+            case .success(let unorderedContacts):
+                var orderedContacts: [String: [CNContact]] = [String: [CNContact]]()
+                for contact in unorderedContacts {
+                    var key: String = "#"
+                    let firstLetter = contact.givenName.count > 1 ? contact.givenName[0..<1] : "?"
+                    if firstLetter.containsAlphabets {
+                        key = firstLetter.uppercased()
+                    }
+                    var contacts = [CNContact]()
+                    if let segregatedContact = orderedContacts[key] {
+                        contacts = segregatedContact
+                    }
+                    contacts.append(contact)
+                    orderedContacts[key] = contacts
+                }
                 completionHandler(orderedContacts)
                 
             case .error(let error):

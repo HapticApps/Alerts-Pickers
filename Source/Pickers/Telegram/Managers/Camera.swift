@@ -128,12 +128,11 @@ public final class Camera {
             return DispatchQueue.init(label: "CameraQueue \(arc4random())",
                                       qos: .background,
                                       attributes: [],
-                                      autoreleaseFrequency: .workItem,
                                       target: nil)
         }
         
         private static func createDevice() -> AVCaptureDevice? {
-            return AVCaptureDevice.default(.builtInWideAngleCamera, for: AVMediaType.video, position: .back)
+            return AVCaptureDevice.default(for: AVMediaType.video)
         }
         
         public static func == (lhs: PreviewStream, rhs: PreviewStream) -> Bool {
